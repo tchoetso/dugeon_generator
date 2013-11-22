@@ -1,3 +1,7 @@
+###To Do: Tunnels cannot intersect rooms that they are not connecting to.
+###       Build a dictionary (or something) that indicates which rooms are connected to which.
+
+
 import random
 
 class Room(object):
@@ -58,15 +62,56 @@ class Map(object):
 
 
 
-def generate_position(room, map):
+def generate_position(room, maps):
     """Generates x and y position for bottom left corner of room"""
-    x_pos=random.randint(1, map.w-room.w)
-    y_pos=random.randint(1, map.h-room.h)
-
-    for i in range(room.w):
-        for j in range(room.h):
-            if map[x_pos + i,y_pos + j] != 'blocked':
-                return generate_position(room,map)
+    x_pos=random.randint(1, maps.w-room.w)
+    y_pos=random.randint(1, maps.h-room.h)
+    if x_pos == 1 and y_pos == 1:
+        for i in range(room.w+1):
+            for j in range(room.h+1):
+                if maps[x_pos + i,y_pos + j] != 'blocked':
+                    return generate_position(room,maps)
+    elif x_pos == 1 and y_pos == maps.h-room.h:
+        for i in range(room.w+1):
+            for j in range(room.h+1):
+                if maps[x_pos + i,y_pos + j-1] != 'blocked':
+                    return generate_position(room,maps)
+    elif x_pos == 1:
+        for i in range(room.w+1):
+            for j in range(room.h+2):
+                if maps[x_pos + i,y_pos + j-1] != 'blocked':
+                    return generate_position(room,maps)
+    elif x_pos == maps.w-room.w and y_pos == 1:
+        for i in range(room.w+1):
+            for j in range(room.h+1):
+                if maps[x_pos + i-1,y_pos + j] != 'blocked':
+                    return generate_position(room,maps)
+    elif x_pos == maps.w-room.w and y_pos == maps.h-room.h:
+        for i in range(room.w+1):
+            for j in range(room.h+1):
+                if maps[x_pos + i-1,y_pos + j-1] != 'blocked':
+                    return generate_position(room,maps)
+    elif x_pos == maps.w-room.w:
+        for i in range(room.w+1):
+            for j in range(room.h+2):
+                if maps[x_pos + i-1,y_pos + j-1] != 'blocked':
+                    return generate_position(room,maps)
+    elif y_pos == 1:
+        for i in range(room.w+2):
+            for j in range(room.h+1):
+                if maps[x_pos-1 + i,y_pos + j] != 'blocked':
+                    return generate_position(room,maps)
+    elif y_pos == maps.h-room.h:
+         for i in range(room.w+2):
+            for j in range(room.h+1):
+                if maps[x_pos + i-1,y_pos + j-1] != 'blocked':
+                    return generate_position(room,maps)
+    else:
+        for i in range(room.w+2):
+            for j in range(room.h+2):
+                if maps[x_pos + i-1,y_pos + j-1] != 'blocked':
+                    return generate_position(room,maps)
+      
     return (x_pos,y_pos)
 
 def update_map(rooms, map):
@@ -77,16 +122,44 @@ def update_map(rooms, map):
         for i in range(room.w):
             for j in range(room.h):
                 map[x_pos+i,y_pos+j]='not blocked'
-    
 
+def horizontal_tunnel(x1,x2,y, maps, dontconnect):
+    for x in range (min(x1,x2), max(x1,x2)+1):
+        maps[x,y] = "unblocked"
+           
+def vertical_tunnel(y1,y2,x, maps, dontconnect):
+    for y in range(min(y1,y2),max(y1,y2)+1):
+        maps[x,y] = "unblocked"
 
+def draw_tunnels (rooms, maps):
+    for n in len(rooms):
+        room = rooms[n]
+        dontconnect=rooms
+        i=random.randint(0,len(rooms)-1)
+        if rooms[i] == room:
+            if i == len(rooms)-1:
+                i-=1
+            else:
+                i+=1
+        dontconnect.pop(room)
+        dontconnect.pop(rooms[i])
+        j=random.randint(0,1)
+        if j == 0:
+            horizontal_tunnel(room.x, rooms[i].x, room.y, maps, dontconnect)
+            vertical_tunnel(room.y, rooms[i].y, rooms[i].x, maps, dontconnect)
+        if j == 1:
+            vertical_tunnel(room.y, rooms[i].y, room.x, maps, dontconnect)
+            horizontal_tunnel(room.x, rooms[i].x, rooms[i].y, maps, dontconnect)
+           
 def main():
     maps=Map()
     room=Room()
     room2=Room(6,4)
-    room3=Room(2,8)
+    room3=Room(6,6)
     rooms=[room, room2, room3]
     update_map(rooms,maps)
+    draw_tunnels(rooms, maps)
+    
     print maps
     print room
     print room2
