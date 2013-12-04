@@ -152,28 +152,6 @@ def horizontal_tunnel(x1,x2,y, y2, maps, d):#khkjhkjhkjh
                 maps[max(x1,x2),y+1]='unblocked'
                 horizontal_tunnel(x-1,max(x1,x2),y+1,y2,maps,d)
 
-def horizontal_tunnel(x1,x2,y, y2, maps, d):
-    for x in range (min(x1,x2), max(x1,x2)+1):
-        if (x,y) in d:
-            if (x,y-1) not in d and (x,y-1) in maps:
-                maps[x,y-1]='unblocked'
-                maps[max(x1,x2),y-1]='unblocked'
-                horizontal_tunnel (x,max(x1,x2),y-1,y2,maps,d)
-            elif (x,y+1) not in d and (x,y+1) in maps:
-                maps[x,y+1]='unblocked'
-                maps[max(x1,x2),y-1]='unblocked'
-                horizontal_tunnel(x,max(x1,x2),y+1,y2,maps,d)
-            elif (x-1,y-1) not in d and (x-1,y-1) in maps:
-                maps[x-1,y-1]='unblocked'
-                maps[max(x1,x2),y-1]='unblocked'
-                horizontal_tunnel(x-1,max(x1,x2),y-1,y2,maps,d)
-            elif (x-1,y+1) not in d and (x-1,y+1) in maps:
-                maps[x-1,y+1]='unblocked'
-                maps[max(x1,x2),y+1]='unblocked'
-                horizontal_tunnel(x-1,max(x1,x2),y+1,y2,maps,d)  
-
-        else:
-            maps[x,y] = "unblocked"
            
 def vertical_tunnel(y1,y2,x, x2, maps, d):
     for y in range(min(y1,y2),max(y1,y2)+1):
