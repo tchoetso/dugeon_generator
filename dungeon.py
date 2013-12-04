@@ -55,15 +55,14 @@ class Map(object):
             for x in range(self.w):
                 if self.__dict__[(x+1,y+1)] == 'blocked':
                     print 'x',
-<<<<<<< HEAD
+
                 elif self.__dict__[(x+1,y+1)] == 'not blocked': # showing rooms
                     print ' ',
                 elif self.__dict__[(x+1,y+1)] == 'unblocked': # showing tunnels
                     print '-',
-=======
                 else:
                     print ' ',
->>>>>>> 5c9203f279ef6c06231d70fa7847a2f590d8ce3d
+
         return ''
 
 
@@ -132,7 +131,7 @@ def update_map(rooms, map):
             for j in range(room.h):
                 map[x_pos+i,y_pos+j]='not blocked'
 
-<<<<<<< HEAD
+
 def horizontal_tunnel(x1,x2,y, y2, maps, d):#khkjhkjhkjh
     for x in range (min(x1,x2), max(x1,x2)+1):
         if (x,y) in d:
@@ -152,7 +151,7 @@ def horizontal_tunnel(x1,x2,y, y2, maps, d):#khkjhkjhkjh
                 maps[x-1,y+1]='unblocked'
                 maps[max(x1,x2),y+1]='unblocked'
                 horizontal_tunnel(x-1,max(x1,x2),y+1,y2,maps,d)
-=======
+
 def horizontal_tunnel(x1,x2,y, y2, maps, d):
     for x in range (min(x1,x2), max(x1,x2)+1):
         if (x,y) in d:
@@ -172,7 +171,7 @@ def horizontal_tunnel(x1,x2,y, y2, maps, d):
                 maps[x-1,y+1]='unblocked'
                 maps[max(x1,x2),y+1]='unblocked'
                 horizontal_tunnel(x-1,max(x1,x2),y+1,y2,maps,d)  
->>>>>>> 5c9203f279ef6c06231d70fa7847a2f590d8ce3d
+
         else:
             maps[x,y] = "unblocked"
            
@@ -239,19 +238,13 @@ def draw_tunnels (rooms, maps):
         if j == 0:
             horizontal_tunnel(room.x, rooms[i].x, room.y, rooms[i].y, maps, d)
             vertical_tunnel(room.y, rooms[i].y, rooms[i].x, room.x, maps, d)
-<<<<<<< HEAD
-          
-=======
->>>>>>> 5c9203f279ef6c06231d70fa7847a2f590d8ce3d
+
         if j == 1:
             vertical_tunnel(room.y, rooms[i].y, room.x, rooms[i].x, maps, d)
             horizontal_tunnel(room.x, rooms[i].x, rooms[i].y, room.y, maps, d)
 
     return connected
-<<<<<<< HEAD
 
-=======
->>>>>>> 5c9203f279ef6c06231d70fa7847a2f590d8ce3d
            
 def main():
     maps=Map()
