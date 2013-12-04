@@ -135,7 +135,7 @@ def update_map(rooms, map):
 def horizontal_tunnel(x1,x2,y, y2, maps, d):#khkjhkjhkjh
     for x in range (min(x1,x2), max(x1,x2)+1):
         if (x,y) in d:
-            if (x,y-1) not in d and (x,y-1) in maps and maps[x,y-2] == 'blocked' and maps[x,y] != 'unblocked':
+            if (x,y-1) not in d and (x,y-1) in maps and maps[x,y-2] != 'unblocked' and maps[x,y] != 'unblocked':
                 maps[x,y-1]='unblocked'
                 maps[max(x1,x2),y-1]='unblocked'
                 horizontal_tunnel (x,max(x1,x2),y-1,y2,maps,d)
