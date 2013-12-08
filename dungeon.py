@@ -4,6 +4,15 @@
 import random
 import copy
 
+class Tunnel(object):
+    """Represents a tunnel in a map grid"""
+
+    def __init__ (self, positions):
+        self.pos=positions
+
+    def __str__ (self):
+        return 'Tunnel object which passes through spaces %r' % (self.pos)
+
 class Room(object):
     """Represents a room in a map grid"""
 
@@ -132,52 +141,67 @@ def update_map(rooms, map):
                 map[x_pos+i,y_pos+j]='not blocked'
 
 
-def horizontal_tunnel(x1,x2,y, y2, maps, d):#khkjhkjhkjh
+def horizontal_tunnel(x1,x2,y, y2, maps, d, n):
+    global tunnels
     for x in range (min(x1,x2), max(x1,x2)+1):
-        if (x,y) in d:
-            if (x,y-1) not in d and (x,y-1) in maps and maps[x,y-2] != 'unblocked' and maps[x,y] != 'unblocked':
-                maps[x,y-1]='unblocked'
-                maps[max(x1,x2),y-1]='unblocked'
-                horizontal_tunnel (x,max(x1,x2),y-1,y2,maps,d)
-            elif (x,y+1) not in d and (x,y+1) in maps and maps[x,y ] != 'unblocked' and maps[x,y+2] != 'unblocked':
-                maps[x,y+1]='unblocked'
-                maps[max(x1,x2),y+1]='unblocked'
-                horizontal_tunnel(x,max(x1,x2),y+1,y2,maps,d)
-            elif (x-1,y-1) not in d and (x-1,y-1) in maps and maps[x-1,y-2] != 'unblocked'and maps[x,y] != 'unblocked':
-                maps[x-1,y-1]='unblocked'
-                maps[max(x1,x2),y-1]='unblocked'
-                horizontal_tunnel(x-1,max(x1,x2),y-1,y2,maps,d)
-            elif (x-1,y+1) not in d and (x-1,y+1) in maps and maps[x-1,y] != 'unblocked' and maps[x,y+22] != 'unblocked':
-                maps[x-1,y+1]='unblocked'
-                maps[max(x1,x2),y+1]='unblocked'
-                horizontal_tunnel(x-1,max(x1,x2),y+1,y2,maps,d)
-
-           
-def vertical_tunnel(y1,y2,x, x2, maps, d):
-    for y in range(min(y1,y2),max(y1,y2)+1):
-        if (x,y) in d:
-            if (x-1,y) not in d and (x-1,y) in maps:
-                maps[x-1,y]='unblocked'
-                maps[x-1,max(y1,y2)]='unblocked'
-                vertical_tunnel(y,max(y1,y2),x-1,x2,maps,d)
-            elif (x+1,y) not in d and (x+1,y) in maps:
-                maps[x+1,y]='unblocked'
-                maps[x+2,max(y1,y2)]='unblocked'
-                vertical_tunnel(y,max(y1,y2),x+1,x2,maps,d)
-            elif (x-1,y) not in d and (x-1,y) in maps:
-                maps[x-1,y-1]='unblocked'
-                maps[x-1,max(y1,y2)]='unblocked'
-                vertical_tunnel(y-1,max(y1,y2),x-1,x2,maps,d)
-            elif (x+1,y-1) not in d and (x+1,y-1) in maps:
-                maps[x+1,y-1]='unblocked'
-                maps[x+2,max(y1,y2)]='unblocked'
-                vertical_tunnel(y-1,max(y1,y2),x+1,x2,maps,d)
+        if (x,y) not in d:
+            maps[x,y] = 'unblocked'
+            tunnels[n].append((x,y))
         else:
+            print 'horizontal check 1 working'
+            if max(y,y2)==y2:
+                if (x,y-1) not in d:
+                    if (x,y-1) in maps:
+                        print 'horizontal check 2 working'
+                        #maps[x,y-1]='unblocked'
+                        #tunnels[n].append((x,y-1))
+                        maps[max(x1,x2),y-1]='unblocked'
+                        tunnels[n].append((max(x1,x2),y-1))
+                        horizontal_tunnel (x-1,max(x1,x2),y-1,y2,maps,d,n)
+            if max(y,y2)==y:
+                if (x,y+1) not in d:
+                    if (x,y+1) in maps:
+                        print 'horizontal check 3 working'
+                        #maps[x,y+1]='unblocked'
+                        #tunnels[n].append((x,y+1))
+                        maps[max(x1,x2),y+1]='unblocked'
+                        tunnels[n].append((max(x1,x2),y+1))
+                        horizontal_tunnel(x-1,max(x1,x2),y+1,y2,maps,d,n)
+                      
+def vertical_tunnel(y1,y2,x, x2, maps, d, n):
+    global tunnels
+    for y in range(min(y1,y2),max(y1,y2)+1):
+        if (x,y) not in d:
             maps[x,y] = "unblocked"
+            tunnels[n].append((x,y))
+        else:
+            print 'vertical check 1 working'
+            if max(x,x2)==x:
+                if (x-1,y) not in d:
+                    if (x-1,y) in maps:
+                        print 'vertical check 2 working'
+                        #maps[x-1,y]='unblocked'
+                        #tunnels[n].append((x-1,y))
+                        maps[x-1,max(y1,y2)]='unblocked'
+                        tunnels[n].append((x-1,max(y1,y2)))
+                        vertical_tunnel(y-1,max(y1,y2),x-1,x2,maps,d,n)
+            if max(x,x2)==x2:
+                if(x+1,y) not in d:
+                    if (x+1,y) in maps:
+                        print 'vertical check 3 working'
+                        #maps[x+1,y]='unblocked'
+                        #tunnels[n].append((x+1,y))
+                        maps[x+1,max(y1,y2)]='unblocked'
+                        tunnels[n].append((x+1,max(y1,y2)))
+                        vertical_tunnel(y-1, max(y1,y2), x+1, x2,maps,d,n)
+
 
 def draw_tunnels (rooms, maps):
     connected=dict()
+    global tunnels
+    tunnels=dict()
     for n in range(len(rooms)):
+        tunnels[n]=[]
         room = rooms[n]
         dontconnect=copy.deepcopy(rooms)
         d=dict()
@@ -214,12 +238,12 @@ def draw_tunnels (rooms, maps):
                     
         j=random.randint(0,1)
         if j == 0:
-            horizontal_tunnel(room.x, rooms[i].x, room.y, rooms[i].y, maps, d)
-            vertical_tunnel(room.y, rooms[i].y, rooms[i].x, room.x, maps, d)
+            horizontal_tunnel(room.x, rooms[i].x, room.y, rooms[i].y, maps, d, n)
+            vertical_tunnel(room.y, rooms[i].y, rooms[i].x, room.x, maps, d, n)
 
         if j == 1:
-            vertical_tunnel(room.y, rooms[i].y, room.x, rooms[i].x, maps, d)
-            horizontal_tunnel(room.x, rooms[i].x, rooms[i].y, room.y, maps, d)
+            vertical_tunnel(room.y, rooms[i].y, room.x, rooms[i].x, maps, d, n)
+            horizontal_tunnel(room.x, rooms[i].x, rooms[i].y, room.y, maps, d, n)
 
     return connected
 
@@ -238,7 +262,11 @@ def main():
     print room2
     print room3
     print connected
-    
+    for tunnel in tunnels:
+        locals()["tunnel"+str(tunnel)]=Tunnel(tunnels[tunnel])
+        print locals()["tunnel"+str(tunnel)]
+
+        
 if __name__ == '__main__':
     main()
 
