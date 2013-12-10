@@ -140,6 +140,15 @@ def update_map(rooms, map):
             for j in range(room.h):
                 map[x_pos+i,y_pos+j]='not blocked'
 
+def in_room(x, y, rooms):
+    for k in range(len(rooms)):
+        left_edge = rooms[k].x
+        right_edge = rooms[k].x + rooms[k].w
+        top_edge = rooms[k].y
+        bottom_edge = rooms[k].y + rooms[k].h
+        if left_edge <= x <= right_edge and top_edge <= y <= bottom_edge:
+            return k
+    return False
 
 def horizontal_tunnel(x1,x2,y, y2, maps, d, n):
     global tunnels
