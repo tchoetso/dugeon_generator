@@ -64,6 +64,7 @@ class Dungeon(dict):
 
     def __init__(self, w=20, h=20):
         """Initializes the dungeon map.
+        
         w: int
         h: int"""
         self.w = w
@@ -99,7 +100,9 @@ class Dungeon(dict):
 
 
     def get_valid_position(self, room):
-        """Generates x and y position for bottom left corner of room.
+        """Generates x and y position for bottom left corner of room. Rooms
+        cannot intersect or be adjacent to each other.
+        
         Returns: tuple of ints, (x,y)"""
         # Prevents rooms from extending out of the dungeon
         x_pos = random.randint(0, self.w - room.w - 1)
@@ -115,10 +118,12 @@ class Dungeon(dict):
 
 
     def place_rooms(self, rooms):
-        """Selects rooms """
+        """Places a list of rooms into the dungeon map.
+        
+        rooms: list of Room objects"""
         for k in range(len(rooms)):
             rooms[k].id = k
-            self.connections[rooms[k]] = set()
+            self.connections[rooms[k]] = set() # Initialize the set of adjacent rooms
             rooms[k].x, rooms[k].y = self.get_valid_position(rooms[k])
             for i in range(-1, rooms[k].w + 1):
                 for j in range(-1, rooms[k].h + 1):
@@ -128,15 +133,23 @@ class Dungeon(dict):
                         self[rooms[k].x + i, rooms[k].y + j] = self.ROOM
 
     def place_items(self, num_items):
+        """Places items into the dungeon map.
+        
+        num_items: int"""
         for k in range(num_items):
-            room = random.choice(self.connections.keys())
+            room = random.choice(self.connections.keys()) # pick a random room
             x, y = self.place_in_room(room)
-            self[x,y] = self.ITEM
+            self[x,y] = self.ITEMS
             self.items.append(Item(x,y,False))
 
     def generate_quests(self):
+        """Places quest items at three locations at three distances away from
+        the starting room. Distance refers to the number of rooms a player must
+        traverse to get to the quest location. The distances depend on how many
+        rooms are in the dungeon."""
         adjacent = self.connections[self.start_room]
         curr = random.sample(adjacent,1) # equivalent of random.choice() for a set
+                                         # but returns a list
         num_rooms = len(self.connections)
         distances = [num_rooms * .1, num_rooms * .25, num_rooms * .5]
         distances = [int(d) for d in distances]
@@ -152,7 +165,8 @@ class Dungeon(dict):
 
     def place_in_room(self, room):
         """Returns a random coordinate within a room
-        room: Room object within self
+        
+        room: Room object within the dungeon
         return: tuple of ints (x,y)"""
         x = random.randint(room.x, room.x + room.w)
         y = random.randint(room.y, room.y + room.h)
@@ -164,12 +178,19 @@ class Dungeon(dict):
 
 
     def make_connection(self, room):
-        if hasattr(self.make_connection, 'last_room') and self.make_connection.last_room != room:
+        """Maps the last room visited to the current room.
+
+        room: Room object"""
+        # Don't make the connection if this is the first room you've hit or if
+        # you're still in the same room as last time
+        if (hasattr(self.make_connection, 'last_room') and 
+            self.make_connection.last_room != room):
             self.connections[self.make_connection.last_room].add(room)
             self.connections[room].add(self.make_connection.last_room)
         self.make_connection.__func__.last_room = room
 
     def print_connections(self):
+        """Prints our the room connections within the dungeon based on room ID."""
         for room, adjacent in self.connections.items():
             print str(room.id) + ': ',
             for adj_room in adjacent:
@@ -177,6 +198,10 @@ class Dungeon(dict):
             print
 
     def which_room(self, coord):
+        """Checks if a coordinate is inside a room
+
+        coord: tuple of ints, (x,y) coordinate
+        returns: Room object that coord is within or False if not inside a room"""
         x, y = coord
         rooms = self.connections.keys()
         for k in range(len(rooms)):
@@ -219,10 +244,18 @@ class Dungeon(dict):
 
 
     def tunnel(self, coord):
+        """Recursively draw tunnels to connect all the rooms.
+
+        coord: tuple of ints, (x,y) of current position"""
+        # Uses method attributes to keep track of unconnected rooms between
+        # function calls
         if not hasattr(self.tunnel, 'unconnected'):
             self.tunnel.__func__.unconnected = self.connections.keys()
-        if self.tunnel.unconnected == []:
+        if self.tunnel.unconnected == []: # Stop if every room has been connected
             return self
+        # Try to open tunnels in every direction, with depth-first tunneling
+        # Shuffle the list of directions between each call, so it doesn't just
+        # make a square 
         random.shuffle(self.DIRECTIONS)
         for direction in self.DIRECTIONS:
             new_dungeon = self.valid_tunnel(coord, direction)
@@ -235,6 +268,8 @@ class Dungeon(dict):
 
 
     def connect_rooms(self):
+        """Selects a random room to start and tunnels to connect all the other
+        rooms."""
         self.start_room = random.choice(self.connections.keys())
         x, y = self.place_in_room(self.start_room)
         self = self.tunnel((x, y))
@@ -250,5 +285,7 @@ def main():
     dungeon.place_items(10)
     f = open('map.txt', 'w')
     f.write(str(dungeon))
+
+
 if __name__ == '__main__':
     main()
