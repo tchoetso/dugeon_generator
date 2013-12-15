@@ -2,29 +2,33 @@
 import random
 import copy
 
-# Bit values of cell type
-WALL = 0x0000
-ROOM = 0x0001
-PERIMETER = 0x0002
-TUNNEL = 0x0004
-QUEST = 0x0008
-ITEM = 0x000F
-
-DIRECTIONS = [(0, 1), (1, 0), (0, -1), (-1, 0)] # (dx, dy)
-TUNNEL_LENGTH = 5  # Length of each tunnel section before changing direction
-
-
 class Item(object):
+    """"Represents an item in the dungeon. Each Item takes up one tile and
+    can be a quest objective.
+
+    attributes: x, y, is_quest"""
     def __init__(self, x, y, is_quest=False):
+        """Initializes the Item.
+        
+        x: int
+        y: int
+        is_quest: boolean"""
         self.x = x
         self.y = y
         self.is_quest = is_quest
 
 class Room(object):
-
-    """Represents a room in a map grid"""
+    """Represents a room in a map grid.
+    
+    attributes: x, y, w, h"""
 
     def __init__(self, w=None, h=None, x=None, y=None):
+        """Initializes the Room.
+        
+        w: int, width of Room
+        h: int, height of Room
+        x: int
+        y: int"""
         if w == None:
             self.w = random.randint(3, 10)
         else:
@@ -37,14 +41,31 @@ class Room(object):
         self.y = y
         self.id = None
 
-    def __str__(self):
-        return 'At (%d,%d), with width %d, and height %d' % (self.x, self.y, self.w, self.h)
-
-
 class Dungeon(dict):
-    """Represents a map in points"""
+    """Map of (x,y) coordinates to tiles and items.
 
-    def __init__(self, w=20, h=20, connections=None, start_room=None):
+    attributes: w, h, connections, start_room, items
+    w: int, width of Dungeon
+    h: int, height of Dungeon
+    start_room: Room object, the room the player starts in
+    connections: dictionary of Rooms to adjacent Rooms
+    items: Item objects within the dungeon"""
+
+    # Bit values of cell type
+    WALL = 0x0000
+    ROOM = 0x0001
+    PERIMETER = 0x0002
+    TUNNEL = 0x0004
+    QUEST = 0x0008
+    ITEM = 0x000F
+
+    DIRECTIONS = [(0, 1), (1, 0), (0, -1), (-1, 0)] # (dx, dy)
+    TUNNEL_LENGTH = 5  # Length of each tunnel section before changing direction
+
+    def __init__(self, w=20, h=20):
+        """Initializes the dungeon map.
+        w: int
+        h: int"""
         self.w = w
         self.h = h
         self.start_room = None
@@ -52,24 +73,24 @@ class Dungeon(dict):
         self.items = []
         for i in range(w):
             for j in range(h):
-                self[i, j] = WALL
+                self[i, j] = self.WALL
 
     def __str__(self):
-        """prints graphical representation of map"""
+        """Prints graphical representation of map"""
         layout = ""
         for y in range(self.h):
             for x in range(self.w):
-                if self[x, y] == WALL:
+                if self[x, y] == self.WALL:
                     layout += 'x'
-                elif self[x, y] == PERIMETER:
+                elif self[x, y] == self.PERIMETER:
                     layout += 'x'
-                elif self[x, y] == ROOM:
+                elif self[x, y] == self.ROOM:
                     layout += ' '
-                elif self[x, y] == TUNNEL:
+                elif self[x, y] == self.TUNNEL:
                     layout += '-'
-                elif self[x, y] == ITEM:
+                elif self[x, y] == self.ITEM:
                     layout += '@'
-                elif self[x, y] == QUEST:
+                elif self[x, y] == self.QUEST:
                     layout += '#'
             layout += '\n'
 
@@ -78,7 +99,8 @@ class Dungeon(dict):
 
 
     def get_valid_position(self, room):
-        """Generates x and y position for bottom left corner of room"""
+        """Generates x and y position for bottom left corner of room.
+        Returns: tuple of ints, (x,y)"""
         # Prevents rooms from extending out of the dungeon
         x_pos = random.randint(0, self.w - room.w - 1)
         y_pos = random.randint(0, self.h - room.h - 1)
@@ -86,13 +108,14 @@ class Dungeon(dict):
         # Check to make sure rooms don't intersect and are not adjacent.
         for i in range(room.w + 1):
             for j in range(room.h + 1):
-                if self[x_pos + i, y_pos + j] != WALL:
+                if self[x_pos + i, y_pos + j] != self.WALL:
                     return self.get_valid_position(room)
 
         return (x_pos, y_pos)
 
 
     def place_rooms(self, rooms):
+        """Selects rooms """
         for k in range(len(rooms)):
             rooms[k].id = k
             self.connections[rooms[k]] = set()
@@ -100,15 +123,15 @@ class Dungeon(dict):
             for i in range(-1, rooms[k].w + 1):
                 for j in range(-1, rooms[k].h + 1):
                     if i == -1 or j == -1 or i == rooms[k].w or j == rooms[k].h:
-                        self[rooms[k].x + i, rooms[k].y + j] = PERIMETER
+                        self[rooms[k].x + i, rooms[k].y + j] = self.PERIMETER
                     else:
-                        self[rooms[k].x + i, rooms[k].y + j] = ROOM
+                        self[rooms[k].x + i, rooms[k].y + j] = self.ROOM
 
     def place_items(self, num_items):
         for k in range(num_items):
             room = random.choice(self.connections.keys())
             x, y = self.place_in_room(room)
-            self[x,y] = ITEM
+            self[x,y] = self.ITEM
             self.items.append(Item(x,y,False))
 
     def generate_quests(self):
@@ -120,7 +143,7 @@ class Dungeon(dict):
         for k in range(max(distances)):
             if k + 1 in distances:
                 x, y = self.place_in_room(curr[0])
-                self[x,y] = QUEST
+                self[x,y] = self.QUEST
                 self.items.append(Item(x,y,True))
             adjacent = self.connections[curr[0]]
             adjacent = adjacent - set(curr) # don't go back into the room you just came from
@@ -134,7 +157,7 @@ class Dungeon(dict):
         x = random.randint(room.x, room.x + room.w)
         y = random.randint(room.y, room.y + room.h)
 
-        while self[x, y] != ROOM:
+        while self[x, y] != self.ROOM:
             x = random.randint(room.x, room.x + room.w)
             y = random.randint(room.y, room.y + room.h)
         return x, y
@@ -177,21 +200,21 @@ class Dungeon(dict):
         otherwise"""
 
         new_dungeon = copy.copy(self)
-        for n in range(TUNNEL_LENGTH):
+        for n in range(self.TUNNEL_LENGTH):
             coord = tuple(sum(k) for k in zip(coord, direction))
             x, y = coord
             if x < 0 or y < 0 or x >= self.w or y >= self.h:
                 return False
-            if self[coord] == TUNNEL:
+            if self[coord] == self.TUNNEL:
                 return False
-            if self[coord] == ROOM or self[coord] == PERIMETER: 
+            if self[coord] == self.ROOM or self[coord] == self.PERIMETER: 
                 room = self.connections.keys()[self.which_room(coord)]
                 self.make_connection(room)
                 try:
                     self.tunnel.unconnected.remove(room)
                 except ValueError:
                     pass
-            new_dungeon[coord] = TUNNEL
+            new_dungeon[coord] = self.TUNNEL
         return new_dungeon
 
 
@@ -200,14 +223,13 @@ class Dungeon(dict):
             self.tunnel.__func__.unconnected = self.connections.keys()
         if self.tunnel.unconnected == []:
             return self
-        global DIRECTIONS
-        random.shuffle(DIRECTIONS)
-        for direction in DIRECTIONS:
+        random.shuffle(self.DIRECTIONS)
+        for direction in self.DIRECTIONS:
             new_dungeon = self.valid_tunnel(coord, direction)
             if new_dungeon:
                 self = new_dungeon
                 new_coord = tuple(
-                    n + TUNNEL_LENGTH * dn for n, dn in zip(coord, direction))
+                    n + self.TUNNEL_LENGTH * dn for n, dn in zip(coord, direction))
                 self = self.tunnel(new_coord)
         return self
 
