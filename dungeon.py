@@ -7,18 +7,32 @@ WALL = 0x0000
 ROOM = 0x0001
 PERIMETER = 0x0002
 TUNNEL = 0x0004
+QUEST = 0x0008
+ITEM = 0x000F
 
 DIRECTIONS = [(0, 1), (1, 0), (0, -1), (-1, 0)] # (dx, dy)
 TUNNEL_LENGTH = 5  # Length of each tunnel section before changing direction
 
 
+class Item(object):
+    def __init__(self, x, y, is_quest=False):
+        self.x = x
+        self.y = y
+        self.is_quest = is_quest
+
 class Room(object):
 
     """Represents a room in a map grid"""
 
-    def __init__(self, w=None, h=None, x='None', y='None'):
-        self.w = random.randint(3, 10)
-        self.h = random.randint(3, 10)
+    def __init__(self, w=None, h=None, x=None, y=None):
+        if w == None:
+            self.w = random.randint(3, 10)
+        else:
+            self.w = w
+        if h == None:
+           self.h = random.randint(3, 10)
+        else:
+            self.h = h
         self.x = x
         self.y = y
         self.id = None
@@ -33,7 +47,9 @@ class Dungeon(dict):
     def __init__(self, w=20, h=20, connections=None, start_room=None):
         self.w = w
         self.h = h
+        self.start_room = None
         self.connections = {}
+        self.items = []
         for i in range(w):
             for j in range(h):
                 self[i, j] = WALL
@@ -51,8 +67,10 @@ class Dungeon(dict):
                     layout += ' '
                 elif self[x, y] == TUNNEL:
                     layout += '-'
-                else:
-                    layout += self[x,y]
+                elif self[x, y] == ITEM:
+                    layout += '@'
+                elif self[x, y] == QUEST:
+                    layout += '#'
             layout += '\n'
 
         return layout
@@ -84,10 +102,46 @@ class Dungeon(dict):
                     if i == -1 or j == -1 or i == rooms[k].w or j == rooms[k].h:
                         self[rooms[k].x + i, rooms[k].y + j] = PERIMETER
                     else:
-                        self[rooms[k].x + i, rooms[k].y + j] = str(rooms[k].id)
+                        self[rooms[k].x + i, rooms[k].y + j] = ROOM
+
+    def place_items(self, num_items):
+        for k in range(num_items):
+            room = random.choice(self.connections.keys())
+            x, y = self.place_in_room(room)
+            self[x,y] = ITEM
+            self.items.append(Item(x,y,False))
+
+    def generate_quests(self):
+        adjacent = self.connections[self.start_room]
+        curr = random.sample(adjacent,1) # equivalent of random.choice() for a set
+        num_rooms = len(self.connections)
+        distances = [num_rooms * .1, num_rooms * .25, num_rooms * .5]
+        distances = [int(d) for d in distances]
+        for k in range(max(distances)):
+            if k + 1 in distances:
+                x, y = self.place_in_room(curr[0])
+                self[x,y] = QUEST
+                self.items.append(Item(x,y,True))
+            adjacent = self.connections[curr[0]]
+            adjacent = adjacent - set(curr) # don't go back into the room you just came from
+            curr = random.sample(adjacent,1) 
+
+
+    def place_in_room(self, room):
+        """Returns a random coordinate within a room
+        room: Room object within self
+        return: tuple of ints (x,y)"""
+        x = random.randint(room.x, room.x + room.w)
+        y = random.randint(room.y, room.y + room.h)
+
+        while self[x, y] != ROOM:
+            x = random.randint(room.x, room.x + room.w)
+            y = random.randint(room.y, room.y + room.h)
+        return x, y
+
 
     def make_connection(self, room):
-        if hasattr(self.make_connection, 'last_room'):
+        if hasattr(self.make_connection, 'last_room') and self.make_connection.last_room != room:
             self.connections[self.make_connection.last_room].add(room)
             self.connections[room].add(self.make_connection.last_room)
         self.make_connection.__func__.last_room = room
@@ -145,7 +199,6 @@ class Dungeon(dict):
         if not hasattr(self.tunnel, 'unconnected'):
             self.tunnel.__func__.unconnected = self.connections.keys()
         if self.tunnel.unconnected == []:
-            print "Reached all rooms"
             return self
         global DIRECTIONS
         random.shuffle(DIRECTIONS)
@@ -161,8 +214,7 @@ class Dungeon(dict):
 
     def connect_rooms(self):
         self.start_room = random.choice(self.connections.keys())
-        x = random.randint(self.start_room.x, self.start_room.x + self.start_room.w)
-        y = random.randint(self.start_room.y, self.start_room.y + self.start_room.h)
+        x, y = self.place_in_room(self.start_room)
         self = self.tunnel((x, y))
         return self
 
@@ -172,8 +224,9 @@ def main():
     rooms = [Room() for k in range(10)]
     dungeon.place_rooms(rooms)
     dungeon = dungeon.connect_rooms()
-    print dungeon
-    dungeon.print_connections()
-    #print dungeon.connections
+    dungeon.generate_quests()
+    dungeon.place_items(10)
+    f = open('map.txt', 'w')
+    f.write(str(dungeon))
 if __name__ == '__main__':
     main()
