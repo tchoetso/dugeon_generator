@@ -1,4 +1,3 @@
-# To Do: Tunnels cannot intersect rooms that they are not connecting to.
 import random
 import copy
 
@@ -27,8 +26,8 @@ class Room(object):
         
         w: int, width of Room
         h: int, height of Room
-        x: int
-        y: int"""
+        x: int, indicates position in map
+        y: int, indicates position in map"""
         if w == None:
             self.w = random.randint(3, 10)
         else:
