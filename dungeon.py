@@ -138,7 +138,7 @@ class Dungeon(dict):
         for k in range(num_items):
             room = random.choice(self.connections.keys()) # pick a random room
             x, y = self.place_in_room(room)
-            self[x,y] = self.ITEMS
+            self[x,y] = self.ITEM
             self.items.append(Item(x,y,False))
 
     def generate_quests(self):
@@ -287,7 +287,7 @@ def make_dungeon_map(width=50, height=50, num_rooms=10):
     dungeon.place_rooms(rooms)
     dungeon = dungeon.connect_rooms()
     dungeon.generate_quests()
-    dungeon.place_items(num_rooms * .75)
+    dungeon.place_items(int(num_rooms * .75))
     return str(dungeon)
 
 def main():
