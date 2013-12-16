@@ -56,7 +56,8 @@ class Dungeon(dict):
     PERIMETER = 0x0002
     TUNNEL = 0x0004
     QUEST = 0x0008
-    ITEM = 0x000F
+    ITEM = 0x0010
+    START = 0x0020
 
     DIRECTIONS = [(0, 1), (1, 0), (0, -1), (-1, 0)] # (dx, dy)
     TUNNEL_LENGTH = 5  # Length of each tunnel section before changing direction
@@ -92,6 +93,8 @@ class Dungeon(dict):
                     layout += '@'
                 elif self[x, y] == self.QUEST:
                     layout += '#'
+                elif self[x, y] == self.START:
+                    layout += '%'
             layout += '\n'
 
         return layout
@@ -272,6 +275,7 @@ class Dungeon(dict):
         self.start_room = random.choice(self.connections.keys())
         x, y = self.place_in_room(self.start_room)
         self = self.tunnel((x, y))
+        self[x, y] = self.START
         return self
 
 
