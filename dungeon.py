@@ -275,15 +275,23 @@ class Dungeon(dict):
         return self
 
 
-def main():
-    dungeon = Dungeon(50, 50)
-    rooms = [Room() for k in range(10)]
+def make_dungeon_map(width=50, height=50, num_rooms=10):
+    """Creates a dungeon and returns a text representation of the map.
+
+    width: int
+    height: int
+    num_rooms: int
+    returns: str"""
+    dungeon = Dungeon(width, height)
+    rooms = [Room() for k in range(num_rooms)]
     dungeon.place_rooms(rooms)
     dungeon = dungeon.connect_rooms()
     dungeon.generate_quests()
-    dungeon.place_items(10)
-    f = open('map.txt', 'w')
-    f.write(str(dungeon))
+    dungeon.place_items(num_rooms * .75)
+    return str(dungeon)
+
+def main():
+    print make_dungeon_map()
 
 
 if __name__ == '__main__':
